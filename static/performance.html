@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAVIX | Model Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root{--side:#202124;--bg:#F7F5F0;--gold:#C5A46D;--gold-d:#755A2A;--text:#292929;--muted:#6b665c;--red:#B3261E;--green:#2E7D5B;--line:#E6E1D6;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;margin:0}
+.side{position:fixed;inset:0 auto 0 0;width:240px;background:var(--side);color:#e9e6df;display:flex;flex-direction:column;justify-content:space-between;padding:20px 14px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 6px}
+.mono{width:34px;height:34px;border-radius:9px;background:var(--gold);color:#202124;display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:700}
+.brand b{display:block;letter-spacing:.12em;font-size:14px}
+.brand span{font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.nav a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:#bdb9b0;text-decoration:none;margin-bottom:4px}
+.nav a.active{background:var(--gold);color:#3a2b0b;font-weight:600}
+.nav a.soon{opacity:.45;cursor:not-allowed}
+.nav small{font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.sidefoot{font-size:12px;color:#9a968d;line-height:1.5;padding:0 6px}
+.main{margin-left:240px;padding:28px 32px 48px}
+.top h1{font-size:28px;letter-spacing:-.02em}
+.top p{color:var(--muted);margin:6px 0 18px;max-width:800px}
+.toggle{display:inline-flex;background:#ece8dd;border-radius:10px;padding:4px;margin-bottom:20px}
+.toggle button{border:0;background:transparent;padding:8px 16px;border-radius:8px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+.toggle button.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 6px 20px rgba(41,41,41,.05)}
+.card h3{font-size:15px;margin-bottom:4px}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.kpi small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi b{display:block;font-family:'Plus Jakarta Sans';font-size:30px;letter-spacing:-.02em;margin-top:6px}
+.kpi span{font-size:12px;color:var(--muted);line-height:1.4;display:block;margin-top:2px}
+.g2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;margin-bottom:20px}
+.chart{position:relative;height:300px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#efe6d2;color:var(--gold-d);padding:2px 7px;border-radius:5px;margin-left:6px;vertical-align:middle}
+ul.list{margin:0;padding-left:18px;line-height:1.75}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:stretch}
+.cm .h{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;padding:4px;text-align:center}
+.cm .c{border-radius:10px;padding:18px 8px;text-align:center}
+.cm .c b{display:block;font-family:'Plus Jakarta Sans';font-size:28px}
+.cm .c span{font-size:11px;color:var(--muted)}
+.good{background:#e4f1ea}.bad{background:#fbe3e1}
+.cfg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.err{background:#fdeceb;color:#7a140f;border-radius:10px;padding:14px;margin-bottom:16px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.g2,.cfg{grid-template-columns:1fr}}
+@media(max-width:800px){.side{position:static;width:auto}.main{margin-left:0;padding:20px 16px}.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div>
+    <div class="brand"><div class="mono">R</div><div><b>RAVIX</b><span>Customer Intelligence</span></div></div>
+    <nav class="nav">
+      <a href="/dashboard"><span>Dashboard</span></a>
+      <a href="/"><span>Churn Prediction</span></a>
+      <a href="/insights"><span>Customer Insights</span></a>
+      <a class="active" href="/performance"><span>Model Performance</span></a>
+      <a href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidefoot">Custom Logistic Regression and scikit-learn<br>IBM Telco dataset</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <h1>Model Performance</h1>
+    <p id="intro">Real results on the held-out test set, read from <code>artifacts/stats.json</code>. Both models use the same train/test split and the same decision threshold of 0.50.</p>
+  </div>
+  <div id="err"></div>
+
+  <div class="toggle">
+    <button id="b_sklearn" class="on" type="button">scikit-learn</button>
+    <button id="b_custom" type="button">Custom (NumPy)</button>
+  </div>
+
+  <div class="cards">
+    <div class="card kpi"><small>ROC-AUC</small><b id="k_auc">-</b><span>ranking quality, 0.5 = random</span></div>
+    <div class="card kpi"><small>Recall</small><b id="k_rec">-</b><span id="k_rec_s"></span></div>
+    <div class="card kpi"><small>Precision</small><b id="k_pre">-</b><span id="k_pre_s"></span></div>
+    <div class="card kpi"><small>Accuracy</small><b id="k_acc">-</b><span id="k_acc_s"></span></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>ROC curve <span class="tag">test set</span></h3>
+      <div class="sub">Both models. The dashed line is a random guess.</div>
+      <div class="chart"><canvas id="c_roc"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Confusion matrix <span class="tag" id="cm_tag">test set</span></h3>
+      <div class="sub" id="cm_sub"></div>
+      <div class="cm" id="cm"></div>
+      <div class="note">Threshold is fixed at 0.50. Other thresholds have not been evaluated yet.</div>
+    </div>
+  </div>
+
+  <div class="g2" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <div class="card">
+      <h3>Custom vs scikit-learn <span class="tag">test set</span></h3>
+      <div class="sub">Same split, same threshold</div>
+      <table>
+        <thead><tr><th>Metric</th><th>Custom</th><th>scikit-learn</th><th>Difference</th></tr></thead>
+        <tbody id="t_cmp"></tbody>
+      </table>
+      <div class="note" id="cmp_note"></div>
+    </div>
+    <div class="card">
+      <h3>Overfitting check <span class="tag">train vs test</span></h3>
+      <div class="sub">A small gap means the model is not memorising the training data</div>
+      <table>
+        <thead><tr><th>Metric</th><th>Custom train</th><th>Custom test</th><th>sklearn train</th><th>sklearn test</th></tr></thead>
+        <tbody id="t_fit"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="cfg">
+    <div class="card">
+      <h3>Setup</h3><div class="sub">How the models were trained</div>
+      <div id="setup"></div>
+    </div>
+    <div class="card">
+      <h3>What the results say <span class="tag">from the data</span></h3>
+      <div class="sub">Generated from the numbers on this page</div>
+      <ul class="list" id="say"></ul>
+      <div class="note">Not evaluated yet: probability calibration, other thresholds, cross-validation, other algorithms.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const el=id=>document.getElementById(id);
+const f4=x=>x.toFixed(4), pct=(x,d=1)=>(x*100).toFixed(d)+'%';
+const GOLD='#C5A46D', DARK='#292929';
+Chart.defaults.font.family='Inter, sans-serif';
+let S=null, current='sklearn', rocChart=null;
+
+function points(r){return r.fpr.map((x,i)=>({x:x,y:r.tpr[i]}));}
+
+function renderModel(){
+  const m=S.models[current], t=m.test, c=t.confusion_matrix, n=S.split.test;
+  el('b_sklearn').className=current==='sklearn'?'on':'';
+  el('b_custom').className=current==='custom'?'on':'';
+  el('k_auc').textContent=f4(t.roc_auc);
+  el('k_rec').textContent=f4(t.recall);
+  el('k_rec_s').textContent=`${c.tp} of ${c.tp+c.fn} churners caught`;
+  el('k_pre').textContent=f4(t.precision);
+  el('k_pre_s').textContent=`${c.tp} of ${c.tp+c.fp} flagged customers did churn`;
+  el('k_acc').textContent=f4(t.accuracy);
+  el('k_acc_s').textContent=`F1-score ${f4(t.f1)}`;
+  el('cm_tag').textContent=current==='sklearn'?'scikit-learn':'custom';
+  el('cm_sub').textContent=`${n.toLocaleString()} test customers`;
+  el('cm').innerHTML=
+    `<div class="h"></div><div class="h">Predicted stay</div><div class="h">Predicted churn</div>
+     <div class="h">Actually stayed</div><div class="c good"><b>${c.tn}</b><span>true negatives (${pct(c.tn/n)})</span></div><div class="c bad"><b>${c.fp}</b><span>false positives (${pct(c.fp/n)})</span></div>
+     <div class="h">Actually churned</div><div class="c bad"><b>${c.fn}</b><span>false negatives (${pct(c.fn/n)})</span></div><div class="c good"><b>${c.tp}</b><span>true positives (${pct(c.tp/n)})</span></div>`;
+}
+
+fetch('/api/stats').then(r=>r.json().then(d=>({ok:r.ok,d}))).then(({ok,d})=>{
+  if(!ok) throw new Error(d.error||'Could not load stats');
+  S=d;
+  const C=S.models.custom, K=S.models.sklearn;
+  const rows=[['Accuracy','accuracy'],['Precision','precision'],['Recall','recall'],['F1-score','f1'],['ROC-AUC','roc_auc']];
+
+  el('t_cmp').innerHTML=rows.map(([l,k])=>{
+    const dif=K.test[k]-C.test[k];
+    return `<tr><td>${l}</td><td>${f4(C.test[k])}</td><td>${f4(K.test[k])}</td><td>${dif>=0?'+':''}${f4(dif)}</td></tr>`;}).join('');
+  const maxDiff=Math.max(...rows.map(([l,k])=>Math.abs(K.test[k]-C.test[k])));
+  el('cmp_note').textContent=`The largest gap between the two models on any metric is ${(maxDiff*100).toFixed(2)} percentage points.`;
+
+  el('t_fit').innerHTML=rows.map(([l,k])=>`<tr><td>${l}</td><td>${f4(C.train[k])}</td><td>${f4(C.test[k])}</td><td>${f4(K.train[k])}</td><td>${f4(K.test[k])}</td></tr>`).join('');
+
+  el('setup').innerHTML=[
+    ['Dataset',`IBM Telco, ${S.dataset.rows_after_cleaning.toLocaleString()} customers after cleaning`],
+    ['Split',`${S.split.train.toLocaleString()} train / ${S.split.test.toLocaleString()} test (stratified, random_state ${S.split.random_state})`],
+    ['Features',`${S.split.n_features} (one-hot encoded, standardised)`],
+    ['Custom model',`NumPy gradient descent, learning rate ${C.config.learning_rate}, ${C.config.iterations} iterations`],
+    ['scikit-learn model',`LogisticRegression, max_iter ${K.config.max_iter}, random_state ${K.config.random_state}, default L2 penalty`],
+    ['Decision threshold','0.50']
+  ].map(([a,b])=>`<div class="kv"><span>${a}</span><b>${b}</b></div>`).join('');
+
+  const gapAcc=Math.abs(K.train.accuracy-K.test.accuracy), gapAucC=Math.abs(C.train.roc_auc-C.test.roc_auc);
+  el('say').innerHTML=[
+    `Both models rank customers well (ROC-AUC ${f4(C.test.roc_auc)} custom, ${f4(K.test.roc_auc)} scikit-learn) and agree closely, so the from-scratch implementation behaves like the library one.`,
+    `Recall is ${pct(K.test.recall)} for scikit-learn and ${pct(C.test.recall)} for custom: roughly 4 in 10 churners are missed at the 0.50 threshold. Threshold tuning is the next thing to try.`,
+    `Train and test results are close (accuracy gap ${(gapAcc*100).toFixed(2)} points for scikit-learn, ROC-AUC gap ${(gapAucC*100).toFixed(2)} points for custom), so there is no sign of overfitting.`,
+    `Accuracy of about ${pct(K.test.accuracy,0)} should be read against the baseline: ${pct(1-S.dataset.churn_rate,0)} of customers do not churn, so predicting "stay" for everyone already scores about that.`
+  ].map(x=>`<li>${x}</li>`).join('');
+
+  rocChart=new Chart(el('c_roc'),{type:'scatter',
+    data:{datasets:[
+      {label:`scikit-learn (AUC ${f4(K.test.roc_auc)})`,data:points(K.roc),showLine:true,borderColor:DARK,backgroundColor:DARK,pointRadius:0,borderWidth:2.5,tension:0.2},
+      {label:`Custom (AUC ${f4(C.test.roc_auc)})`,data:points(C.roc),showLine:true,borderColor:GOLD,backgroundColor:GOLD,pointRadius:0,borderWidth:2.5,tension:0.2},
+      {label:'Random guess',data:[{x:0,y:0},{x:1,y:1}],showLine:true,borderColor:'#aaa',borderDash:[6,6],pointRadius:0,borderWidth:1.5}
+    ]},
+    options:{maintainAspectRatio:false,
+      scales:{x:{min:0,max:1,title:{display:true,text:'False positive rate'}},y:{min:0,max:1,title:{display:true,text:'True positive rate'}}},
+      plugins:{legend:{position:'bottom'}}}});
+
+  el('b_sklearn').onclick=()=>{current='sklearn';renderModel();};
+  el('b_custom').onclick=()=>{current='custom';renderModel();};
+  renderModel();
+}).catch(e=>{
+  el('err').innerHTML=`<div class="err"><b>${e.message}</b><br>Make sure app.py is running and artifacts/stats.json exists.</div>`;
+});
+</script>
+</body>
+</html>

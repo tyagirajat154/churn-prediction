@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAVIX | Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root{--side:#202124;--bg:#F7F5F0;--gold:#C5A46D;--gold-d:#755A2A;--text:#292929;--muted:#6b665c;--red:#B3261E;--green:#2E7D5B;--line:#E6E1D6;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;margin:0}
+.side{position:fixed;inset:0 auto 0 0;width:240px;background:var(--side);color:#e9e6df;display:flex;flex-direction:column;justify-content:space-between;padding:20px 14px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 6px}
+.mono{width:34px;height:34px;border-radius:9px;background:var(--gold);color:#202124;display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:700}
+.brand b{display:block;letter-spacing:.12em;font-size:14px}
+.brand span{font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.nav a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:#bdb9b0;text-decoration:none;margin-bottom:4px}
+.nav a.active{background:var(--gold);color:#3a2b0b;font-weight:600}
+.nav a.soon{opacity:.45;cursor:not-allowed}
+.nav small{font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.sidefoot{font-size:12px;color:#9a968d;line-height:1.5;padding:0 6px}
+.main{margin-left:240px;padding:28px 32px 48px}
+.top h1{font-size:28px;letter-spacing:-.02em}
+.top p{color:var(--muted);margin:6px 0 22px;max-width:760px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 6px 20px rgba(41,41,41,.05)}
+.card h3{font-size:15px;margin-bottom:4px}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.kpi small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi b{display:block;font-family:'Plus Jakarta Sans';font-size:32px;letter-spacing:-.02em;margin-top:6px}
+.kpi span{font-size:12px;color:var(--muted)}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.chart{position:relative;height:240px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#efe6d2;color:var(--gold-d);padding:2px 7px;border-radius:5px;margin-left:6px;vertical-align:middle}
+ul.act{margin:0;padding-left:18px;line-height:1.75}
+.err{background:#fdeceb;color:#7a140f;border-radius:10px;padding:14px;margin-bottom:16px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}}
+@media(max-width:800px){.side{position:static;width:auto}.main{margin-left:0;padding:20px 16px}.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div>
+    <div class="brand"><div class="mono">R</div><div><b>RAVIX</b><span>Customer Intelligence</span></div></div>
+    <nav class="nav">
+      <a class="active" href="/dashboard"><span>Dashboard</span></a>
+      <a href="/"><span>Churn Prediction</span></a>
+      <a href="/insights"><span>Customer Insights</span></a>
+      <a href="/performance"><span>Model Performance</span></a>
+      <a href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidefoot">Custom Logistic Regression and scikit-learn<br>IBM Telco dataset</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <h1>Dashboard</h1>
+    <p>Overview of the IBM Telco dataset and the trained models. Every number on this page is read from <code>artifacts/stats.json</code>, which the notebook (Cell 9) computes.</p>
+  </div>
+  <div id="err"></div>
+
+  <div class="cards">
+    <div class="card kpi"><small>Customers</small><b id="k_cust">-</b><span id="k_cust_s"></span></div>
+    <div class="card kpi"><small>Churn rate</small><b id="k_churn">-</b><span id="k_churn_s"></span></div>
+    <div class="card kpi"><small>Avg monthly charges</small><b id="k_mc">-</b><span>per customer</span></div>
+    <div class="card kpi"><small>Avg tenure</small><b id="k_ten">-</b><span>months</span></div>
+  </div>
+
+  <div class="g3">
+    <div class="card"><h3>Churn distribution</h3><div class="sub">Retained vs churned customers</div><div class="chart"><canvas id="c_dist"></canvas></div></div>
+    <div class="card"><h3>Avg monthly charges</h3><div class="sub">By churn status ($)</div><div class="chart"><canvas id="c_mc"></canvas></div></div>
+    <div class="card"><h3>Avg tenure</h3><div class="sub">By churn status (months)</div><div class="chart"><canvas id="c_ten"></canvas></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card"><h3>Churn rate by contract</h3><div class="sub">Share of customers who churned</div><div class="chart"><canvas id="c_con"></canvas></div></div>
+    <div class="card"><h3>Churn rate by tenure group</h3><div class="sub">Share of customers who churned</div><div class="chart"><canvas id="c_tg"></canvas></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Model summary <span class="tag">test set</span></h3>
+      <div class="sub" id="split"></div>
+      <table>
+        <thead><tr><th>Metric</th><th>Custom (NumPy)</th><th>scikit-learn</th></tr></thead>
+        <tbody id="mt"></tbody>
+      </table>
+      <div class="note">Both models are scored on the same held-out test set.</div>
+    </div>
+    <div class="card">
+      <h3>Where to focus retention <span class="tag">from the data</span></h3>
+      <div class="sub">Generated from the churn rates in this dataset</div>
+      <ul class="act" id="act"></ul>
+      <div class="note">These are observed patterns, not proof of cause. An offer may not change them.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const el=id=>document.getElementById(id);
+const pct=(x,d=1)=>(x*100).toFixed(d)+'%';
+const GOLD='#C5A46D', RED='#B3261E', GREEN='#2E7D5B', GREY='#8a857a';
+Chart.defaults.font.family='Inter, sans-serif';
+Chart.defaults.plugins.legend.display=false;
+
+function bar(id,labels,data,colors,fmt,max){
+  new Chart(el(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:6}]},
+    options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true,max,ticks:{callback:v=>fmt(v)}}},
+      plugins:{tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}}}});
+}
+
+fetch('/api/stats').then(r=>r.json().then(d=>({ok:r.ok,d}))).then(({ok,d})=>{
+  if(!ok) throw new Error(d.error||'Could not load stats');
+  const ds=d.dataset;
+  el('k_cust').textContent=ds.rows_after_cleaning.toLocaleString();
+  el('k_cust_s').textContent=`after cleaning (${ds.raw_rows.toLocaleString()} raw, ${ds.dropped_rows} dropped)`;
+  el('k_churn').textContent=pct(ds.churn_rate,2);
+  el('k_churn_s').textContent=`${ds.churned.toLocaleString()} customers churned`;
+  el('k_mc').textContent='$'+ds.avg_monthly_charges.toFixed(2);
+  el('k_ten').textContent=ds.avg_tenure.toFixed(1);
+
+  new Chart(el('c_dist'),{type:'doughnut',
+    data:{labels:['Retained','Churned'],datasets:[{data:[ds.rows_after_cleaning-ds.churned,ds.churned],backgroundColor:[GOLD,RED],borderWidth:0}]},
+    options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:true,position:'bottom'}}}});
+  bar('c_mc',['Churned','Retained'],[ds.avg_monthly_charges_churned,ds.avg_monthly_charges_retained],[RED,GOLD],v=>'$'+Number(v).toFixed(0));
+  bar('c_ten',['Churned','Retained'],[ds.avg_tenure_churned,ds.avg_tenure_retained],[RED,GOLD],v=>Number(v).toFixed(0));
+
+  const con=d.churn_by_contract, tg=d.churn_by_tenure_group;
+  bar('c_con',con.map(r=>r.group),con.map(r=>r.churn_rate),[RED,GOLD,GREEN],v=>pct(v,0),1);
+  bar('c_tg',tg.map(r=>r.group),tg.map(r=>r.churn_rate),[RED,'#D9893B',GOLD,GREEN],v=>pct(v,0),1);
+
+  const c=d.models.custom.test, s=d.models.sklearn.test;
+  el('split').textContent=`${d.split.train.toLocaleString()} train / ${d.split.test.toLocaleString()} test, stratified, ${d.split.n_features} features`;
+  const rows=[['Accuracy','accuracy'],['Precision','precision'],['Recall','recall'],['F1-score','f1'],['ROC-AUC','roc_auc']];
+  el('mt').innerHTML=rows.map(([l,k])=>`<tr><td>${l}</td><td>${c[k].toFixed(4)}</td><td>${s[k].toFixed(4)}</td></tr>`).join('');
+
+  // data-driven focus list
+  const worstC=[...con].sort((a,b)=>b.churn_rate-a.churn_rate)[0];
+  const bestC=[...con].sort((a,b)=>a.churn_rate-b.churn_rate)[0];
+  const newT=tg[0];
+  const pay=[...d.churn_by_payment].sort((a,b)=>b.churn_rate-a.churn_rate)[0];
+  const net=[...d.churn_by_internet].sort((a,b)=>b.churn_rate-a.churn_rate)[0];
+  el('act').innerHTML=[
+    `<b>${worstC.group}</b> contracts churn at ${pct(worstC.churn_rate)} versus ${pct(bestC.churn_rate)} for ${bestC.group}. Moving customers to longer contracts is the biggest lever.`,
+    `Customers in their first year (${newT.group}) churn at ${pct(newT.churn_rate)}. An early check-in is worth testing.`,
+    `<b>${pay.group}</b> has the highest churn among payment methods (${pct(pay.churn_rate)}).`,
+    `<b>${net.group}</b> internet customers churn most (${pct(net.churn_rate)}). Look at service quality and pricing there.`
+  ].map(x=>`<li>${x}</li>`).join('');
+}).catch(e=>{
+  el('err').innerHTML=`<div class="err"><b>${e.message}</b><br>Make sure app.py is running and Cell 9 has created artifacts/stats.json.</div>`;
+});
+</script>
+</body>
+</html>

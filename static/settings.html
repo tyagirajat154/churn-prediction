@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAVIX | Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--side:#202124;--bg:#F7F5F0;--gold:#C5A46D;--gold-d:#755A2A;--text:#292929;--muted:#6b665c;--line:#E6E1D6;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;margin:0}
+.side{position:fixed;inset:0 auto 0 0;width:240px;background:var(--side);color:#e9e6df;display:flex;flex-direction:column;justify-content:space-between;padding:20px 14px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 6px}
+.mono{width:34px;height:34px;border-radius:9px;background:var(--gold);color:#202124;display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:700}
+.brand b{display:block;letter-spacing:.12em;font-size:14px}
+.brand span{font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.nav a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:#bdb9b0;text-decoration:none;margin-bottom:4px}
+.nav a.active{background:var(--gold);color:#3a2b0b;font-weight:600}
+.sidefoot{font-size:12px;color:#9a968d;line-height:1.5;padding:0 6px}
+.main{margin-left:240px;padding:28px 32px 48px}
+.top h1{font-size:28px;letter-spacing:-.02em}
+.top p{color:var(--muted);margin:6px 0 22px;max-width:800px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:18px}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 6px 20px rgba(41,41,41,.05)}
+.card h3{font-size:15px;margin-bottom:4px}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.kv b{text-align:right;font-weight:600}
+ul.list{margin:0;padding-left:18px;line-height:1.75}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#efe6d2;color:var(--gold-d);padding:2px 7px;border-radius:5px;margin-left:6px;vertical-align:middle}
+.band{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.band:last-child{border-bottom:0}
+.dot{width:10px;height:10px;border-radius:50%}
+code{background:#f1ede2;padding:1px 5px;border-radius:4px;font-size:12px}
+.err{background:#fdeceb;color:#7a140f;border-radius:10px;padding:14px;margin-bottom:16px}
+@media(max-width:1000px){.g2{grid-template-columns:1fr}}
+@media(max-width:800px){.side{position:static;width:auto}.main{margin-left:0;padding:20px 16px}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div>
+    <div class="brand"><div class="mono">R</div><div><b>RAVIX</b><span>Customer Intelligence</span></div></div>
+    <nav class="nav">
+      <a href="/dashboard"><span>Dashboard</span></a>
+      <a href="/"><span>Churn Prediction</span></a>
+      <a href="/insights"><span>Customer Insights</span></a>
+      <a href="/performance"><span>Model Performance</span></a>
+      <a class="active" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidefoot">Custom Logistic Regression and scikit-learn<br>IBM Telco dataset</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <h1>Settings &amp; Governance</h1>
+    <p>A read-only description of how this project was built. Nothing on this page changes the model. To change a setting, edit the notebook and run it again.</p>
+  </div>
+  <div id="err"></div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Project and dataset</h3><div class="sub">Where the data comes from</div>
+      <div id="proj"></div>
+    </div>
+    <div class="card">
+      <h3>Models <span class="tag">as trained</span></h3><div class="sub">Two logistic regression implementations, same split</div>
+      <div id="models"></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Preprocessing</h3><div class="sub">Training, in the notebook</div>
+      <ul class="list">
+        <li>Raw <code>TotalCharges</code> converted to numbers; rows where it was blank were dropped.</li>
+        <li><code>customerID</code> removed (an identifier, not a feature).</li>
+        <li><code>Churn</code> converted: Yes = 1, No = 0.</li>
+        <li>Stratified 80/20 train-test split <em>before</em> encoding.</li>
+        <li>One-hot encoding with <code>drop_first=True</code>; test columns aligned to training columns.</li>
+        <li><code>StandardScaler</code> fitted on the training data only, then applied to the test data.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Prediction app <span class="tag">inference</span></h3><div class="sub">What <code>app.py</code> does for each request</div>
+      <ul class="list">
+        <li>Validates all 19 fields (allowed values, tenure 1-72, monthly charges 0-200, total charges 0-10,000).</li>
+        <li>If total charges is blank it is estimated as tenure x monthly charges, and the result says so.</li>
+        <li>Builds the same 30 columns in the same order as training (saved in <code>feature_columns.json</code>).</li>
+        <li>Applies the saved scaler, then the saved model weights.</li>
+        <li>Explanation = weight x scaled value for each feature, versus an average training customer.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Decision threshold and risk bands</h3><div class="sub">Used on the Churn Prediction page</div>
+      <div class="kv"><span>Churn / stay decision</span><b>probability at or above 0.50</b></div>
+      <div class="band"><span class="dot" style="background:#2E7D5B"></span><span>Low risk</span><b style="margin-left:auto">below 30%</b></div>
+      <div class="band"><span class="dot" style="background:#C5A46D"></span><span>Medium risk</span><b style="margin-left:auto">30% to 60%</b></div>
+      <div class="band"><span class="dot" style="background:#B3261E"></span><span>High risk</span><b style="margin-left:auto">60% and above</b></div>
+      <div class="note">The 0.50 threshold is the default. The risk bands are a labelling convention chosen by hand, not learned by the model. Neither has been tuned yet.</div>
+    </div>
+    <div class="card">
+      <h3>Saved files</h3><div class="sub">Everything the app loads from <code>artifacts/</code></div>
+      <div class="kv"><span>sklearn_model.joblib</span><b>scikit-learn model</b></div>
+      <div class="kv"><span>custom_model.npz</span><b>NumPy weights and bias</b></div>
+      <div class="kv"><span>scaler.joblib</span><b>fitted StandardScaler</b></div>
+      <div class="kv"><span>feature_columns.json</span><b>30 columns, in order</b></div>
+      <div class="kv"><span>stats.json</span><b>numbers shown on the pages</b></div>
+      <div class="note">Environment: Python 3.12, NumPy 2.5.4, pandas 3.1.0, scikit-learn 1.9.1, Flask.</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>Limitations</h3><div class="sub">Read these before trusting a score</div>
+      <ul class="list">
+        <li>Recall is only about 0.57, so roughly 4 in 10 churners are missed at the 0.50 threshold.</li>
+        <li>One train-test split only. No cross-validation, so the metrics have no error bars.</li>
+        <li>Probability calibration has not been checked, so a score of 60% may not mean 60% in practice.</li>
+        <li>Fairness across groups (gender, age and so on) has not been evaluated.</li>
+        <li>Trained on one public telecom dataset. It may not transfer to another company or period.</li>
+        <li>Tenure, monthly charges and total charges are strongly correlated, so individual factor bars should be read together.</li>
+        <li>Patterns are correlations. A high churn rate in a group does not prove the attribute causes churn.</li>
+        <li>Flask development server with no login. This is a student project, not a production system.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Data privacy</h3><div class="sub">What this app does with data</div>
+      <ul class="list">
+        <li>The training data is the public IBM Telco sample dataset. Customer IDs are removed before training.</li>
+        <li><code>app.py</code> does not write submitted customer details to disk or a database.</li>
+        <li>Fonts and Chart.js are loaded from Google and jsDelivr, so the browser contacts those servers.</li>
+        <li>If this were used with real customer data, add authentication, access control, and a data-protection review first.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<script>
+const el=id=>document.getElementById(id);
+const kv=rows=>rows.map(([a,b])=>`<div class="kv"><span>${a}</span><b>${b}</b></div>`).join('');
+fetch('/api/stats').then(r=>r.json().then(d=>({ok:r.ok,d}))).then(({ok,d})=>{
+  if(!ok) throw new Error(d.error||'Could not load stats');
+  const ds=d.dataset, sp=d.split, C=d.models.custom, K=d.models.sklearn;
+  el('proj').innerHTML=kv([
+    ['Dataset','IBM Telco Customer Churn'],
+    ['Raw rows',ds.raw_rows.toLocaleString()],
+    ['Rows after cleaning',`${ds.rows_after_cleaning.toLocaleString()} (${ds.dropped_rows} dropped, blank TotalCharges)`],
+    ['Churned',`${ds.churned.toLocaleString()} (${(ds.churn_rate*100).toFixed(2)}%)`],
+    ['Split',`${sp.train.toLocaleString()} train / ${sp.test.toLocaleString()} test`],
+    ['Split method',`stratified, random_state ${sp.random_state}`],
+    ['Features after encoding',sp.n_features]
+  ]);
+  el('models').innerHTML=kv([
+    ['Custom model',`NumPy gradient descent, learning rate ${C.config.learning_rate}, ${C.config.iterations} iterations`],
+    ['scikit-learn model',`LogisticRegression, max_iter ${K.config.max_iter}, random_state ${K.config.random_state}`],
+    ['Penalty','scikit-learn default (L2). Custom model: none'],
+    ['Class weights','none (default)'],
+    ['Test ROC-AUC',`custom ${C.test.roc_auc.toFixed(4)}, scikit-learn ${K.test.roc_auc.toFixed(4)}`]
+  ]);
+}).catch(e=>{
+  el('err').innerHTML=`<div class="err"><b>${e.message}</b><br>Make sure app.py is running and artifacts/stats.json exists.</div>`;
+});
+</script>
+</body>
+</html>

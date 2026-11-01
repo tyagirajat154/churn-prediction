@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAVIX | Churn Prediction</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--side:#202124;--bg:#F7F5F0;--gold:#C5A46D;--gold-d:#755A2A;--text:#292929;--muted:#6b665c;--red:#B3261E;--green:#2E7D5B;--line:#E6E1D6;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;margin:0}
+.side{position:fixed;inset:0 auto 0 0;width:240px;background:var(--side);color:#e9e6df;display:flex;flex-direction:column;justify-content:space-between;padding:20px 14px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px;padding:0 6px}
+.mono{width:34px;height:34px;border-radius:9px;background:var(--gold);color:#202124;display:grid;place-items:center;font-family:'Plus Jakarta Sans';font-weight:700}
+.brand b{display:block;letter-spacing:.12em;font-size:14px}
+.brand span{font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.nav a{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;color:#bdb9b0;text-decoration:none;margin-bottom:4px}
+.nav a.active{background:var(--gold);color:#3a2b0b;font-weight:600}
+.nav a.soon{opacity:.45;cursor:not-allowed}
+.nav small{font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.sidefoot{font-size:12px;color:#9a968d;line-height:1.5;padding:0 6px}
+.main{margin-left:240px;padding:28px 32px 48px}
+.top h1{font-size:28px;letter-spacing:-.02em}
+.top p{color:var(--muted);margin:6px 0 22px;max-width:720px}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.card{background:var(--card);border-radius:14px;padding:22px;box-shadow:0 1px 2px rgba(0,0,0,.03),0 6px 20px rgba(41,41,41,.05);margin-bottom:20px}
+.card h3{font-size:16px;margin-bottom:14px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:500}
+select,input{height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;color:var(--text);background:#fff}
+select:disabled{background:#f2efe8;color:#8a857a}
+select:focus,input:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-d);font-weight:600;margin:18px 0 10px}
+.sec:first-child{margin-top:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+button{height:40px;border:0;border-radius:9px;padding:0 18px;font:inherit;font-weight:600;cursor:pointer}
+.btn-gold{background:var(--gold);color:#3a2b0b}
+.btn-gold:hover{background:#b8955a}
+.btn-ghost{background:#efebe1;color:var(--text)}
+.radios{display:flex;gap:14px;font-size:13px;color:var(--text)}
+.radios label{flex-direction:row;align-items:center;gap:6px;color:var(--text)}
+.radios input{height:auto}
+.sticky{position:sticky;top:20px}
+.empty{color:var(--muted);text-align:center;padding:36px 10px}
+.err{background:#fdeceb;color:#7a140f;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px}
+.err ul{margin:6px 0 0 18px;padding:0}
+.big{display:flex;align-items:baseline;gap:12px}
+.big b{font-family:'Plus Jakarta Sans';font-size:52px;letter-spacing:-.03em}
+.badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.bar{position:relative;height:12px;background:#ece8dd;border-radius:99px;margin:16px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:#292929}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.factor{margin-bottom:12px}
+.factor .t{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
+.factor .b{height:8px;background:#ece8dd;border-radius:99px;overflow:hidden}
+.factor .b i{display:block;height:100%;border-radius:99px}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#efe6d2;color:var(--gold-d);padding:2px 7px;border-radius:5px;margin-left:6px;vertical-align:middle}
+ul.sug{margin:0;padding-left:18px;line-height:1.7}
+.delta{font-weight:700}
+.hidden{display:none}
+@media(max-width:1100px){.grid{grid-template-columns:1fr}.sticky{position:static}}
+@media(max-width:800px){.side{position:static;width:auto;flex-direction:column}.main{margin-left:0;padding:20px 16px}.fgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <div>
+    <div class="brand"><div class="mono">R</div><div><b>RAVIX</b><span>Customer Intelligence</span></div></div>
+    <nav class="nav">
+           <a href="/dashboard"><span>Dashboard</span></a>
+      <a class="active" href="/"><span>Churn Prediction</span></a>
+      <a href="/insights"><span>Customer Insights</span></a>
+      <a href="/performance"><span>Model Performance</span></a>
+      <a href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidefoot">Custom Logistic Regression and scikit-learn<br>IBM Telco dataset</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <h1>Churn Prediction</h1>
+    <p>Enter a customer's details. The numbers below come from the trained logistic regression models, with the same preprocessing used in training.</p>
+  </div>
+
+  <div class="grid">
+    <section>
+      <div class="card">
+        <form id="form" autocomplete="off"><div id="formBody"></div>
+          <div class="sec">Model</div>
+          <div class="radios">
+            <label><input type="radio" name="model" value="sklearn" checked> scikit-learn</label>
+            <label><input type="radio" name="model" value="custom"> Custom (NumPy)</label>
+          </div>
+          <div class="row">
+            <button type="submit" class="btn-gold">Predict churn</button>
+            <button type="button" class="btn-ghost" id="exampleBtn">Fill example customer</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="sticky">
+      <div class="card" id="resultCard">
+        <div id="errBox"></div>
+        <div id="empty" class="empty">No prediction yet. Fill the form and press <b>Predict churn</b>.</div>
+        <div id="result" class="hidden">
+          <div class="big"><b id="pct">0%</b><span class="badge" id="risk">Low</span></div>
+          <div id="verdict" style="margin-top:4px;font-weight:600"></div>
+          <div class="bar"><i id="barFill"></i><span class="mark" style="left:50%"></span></div>
+          <div class="scale"><span>0%</span><span>Decision threshold 50%</span><span>100%</span></div>
+          <div style="margin-top:14px">
+            <div class="kv"><span>scikit-learn probability</span><b id="pSk"></b></div>
+            <div class="kv"><span>Custom model probability</span><b id="pCu"></b></div>
+          </div>
+          <div class="note" id="estNote"></div>
+        </div>
+      </div>
+
+      <div class="card hidden" id="factorCard">
+        <h3>Why this score <span class="tag">from the model</span></h3>
+        <div id="factors"></div>
+        <div class="note">Each bar is the shift in log-odds versus an average training customer (weight x scaled value), so it is an exact explanation for logistic regression. Tenure, MonthlyCharges and TotalCharges are strongly correlated, so read those three together rather than one at a time.</div>
+      </div>
+
+      <div class="card hidden" id="whatCard">
+        <h3>What-if simulation <span class="tag">re-scored by the model</span></h3>
+        <div class="fgrid">
+          <label>Contract<select id="w_Contract"><option>Month-to-month</option><option>One year</option><option>Two year</option></select></label>
+          <label>Payment method<select id="w_PaymentMethod"><option>Electronic check</option><option>Mailed check</option><option>Bank transfer (automatic)</option><option>Credit card (automatic)</option></select></label>
+          <label>Tech support<select id="w_TechSupport"><option>Yes</option><option>No</option></select></label>
+          <label>Online security<select id="w_OnlineSecurity"><option>Yes</option><option>No</option></select></label>
+        </div>
+        <div class="row"><button class="btn-gold" id="simBtn" type="button">Simulate</button><span id="simOut"></span></div>
+        <div class="note">This shows how the model's score changes when those fields change. It reflects patterns in past data, not a guarantee that an offer would work.</div>
+      </div>
+
+      <div class="card hidden" id="sugCard">
+        <h3>Retention ideas <span class="tag">general guidance</span></h3>
+        <ul class="sug" id="sug"></ul>
+        <div class="note">These are rule-based suggestions from the inputs, not model output.</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const YN=['Yes','No'], ADD=['Yes','No','No internet service'];
+const ADDON=['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies'];
+const SECTIONS=[
+ {title:'Customer profile',fields:[
+  {n:'gender',l:'Gender',o:['Female','Male']},
+  {n:'SeniorCitizen',l:'Senior citizen',o:[['0','No'],['1','Yes']]},
+  {n:'Partner',l:'Has partner',o:YN},
+  {n:'Dependents',l:'Has dependents',o:YN}]},
+ {title:'Services',fields:[
+  {n:'PhoneService',l:'Phone service',o:YN},
+  {n:'MultipleLines',l:'Multiple lines',o:['Yes','No','No phone service']},
+  {n:'InternetService',l:'Internet service',o:['DSL','Fiber optic','No']},
+  {n:'OnlineSecurity',l:'Online security',o:ADD},
+  {n:'OnlineBackup',l:'Online backup',o:ADD},
+  {n:'DeviceProtection',l:'Device protection',o:ADD},
+  {n:'TechSupport',l:'Tech support',o:ADD},
+  {n:'StreamingTV',l:'Streaming TV',o:ADD},
+  {n:'StreamingMovies',l:'Streaming movies',o:ADD}]},
+ {title:'Contract and billing',fields:[
+  {n:'tenure',l:'Tenure (months, 1-72)',t:'number',min:1,max:72,step:1,def:12},
+  {n:'Contract',l:'Contract',o:['Month-to-month','One year','Two year']},
+  {n:'PaperlessBilling',l:'Paperless billing',o:YN},
+  {n:'PaymentMethod',l:'Payment method',o:['Electronic check','Mailed check','Bank transfer (automatic)','Credit card (automatic)']},
+  {n:'MonthlyCharges',l:'Monthly charges ($)',t:'number',min:0.01,max:200,step:0.01,def:70},
+  {n:'TotalCharges',l:'Total charges ($, optional)',t:'number',min:0,max:10000,step:0.01,def:'',opt:true}]}
+];
+const EXAMPLE={gender:'Female',SeniorCitizen:'0',Partner:'Yes',Dependents:'No',PhoneService:'No',MultipleLines:'No phone service',InternetService:'DSL',OnlineSecurity:'No',OnlineBackup:'Yes',DeviceProtection:'No',TechSupport:'No',StreamingTV:'No',StreamingMovies:'No',tenure:1,Contract:'Month-to-month',PaperlessBilling:'Yes',PaymentMethod:'Electronic check',MonthlyCharges:29.85,TotalCharges:29.85};
+
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ---- build the form ----
+el('formBody').innerHTML=SECTIONS.map(s=>`<div class="sec">${s.title}</div><div class="fgrid">`+s.fields.map(f=>{
+  if(f.o){
+    return `<label>${f.l}<select id="f_${f.n}" name="${f.n}">`+f.o.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return `<option value="${esc(v)}">${esc(t)}</option>`}).join('')+`</select></label>`;
+  }
+  return `<label>${f.l}<input type="number" id="f_${f.n}" name="${f.n}" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.def}"></label>`;
+}).join('')+`</div>`).join('');
+
+const val=n=>el('f_'+n).value;
+
+function applyRules(){
+  const net=val('InternetService'), ph=val('PhoneService');
+  ADDON.forEach(n=>{
+    const s=el('f_'+n);
+    [...s.options].forEach(o=>{if(o.value==='No internet service')o.disabled=(net!=='No')});
+    if(net==='No') s.value='No internet service'; else if(s.value==='No internet service') s.value='No';
+    s.disabled=(net==='No');
+  });
+  const m=el('f_MultipleLines');
+  [...m.options].forEach(o=>{if(o.value==='No phone service')o.disabled=(ph!=='No')});
+  if(ph==='No') m.value='No phone service'; else if(m.value==='No phone service') m.value='No';
+  m.disabled=(ph==='No');
+}
+el('f_InternetService').addEventListener('change',applyRules);
+el('f_PhoneService').addEventListener('change',applyRules);
+applyRules();
+
+el('exampleBtn').addEventListener('click',()=>{
+  Object.entries(EXAMPLE).forEach(([k,v])=>{el('f_'+k).value=v});
+  applyRules();
+});
+
+// ---- helpers ----
+function collect(){
+  const p={};
+  SECTIONS.forEach(s=>s.fields.forEach(f=>{
+    let v=val(f.n);
+    if(f.t==='number'){ if(v===''){ if(f.opt) return; } else v=Number(v); }
+    else if(f.n==='SeniorCitizen') v=Number(v);
+    p[f.n]=v;
+  }));
+  p.model=document.querySelector('input[name=model]:checked').value;
+  return p;
+}
+async function callApi(payload){
+  const r=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const data=await r.json();
+  if(!r.ok) throw data;
+  return data;
+}
+const riskColor={Low:'#2E7D5B',Medium:'#C5A46D',High:'#B3261E'};
+const pct=x=>(x*100).toFixed(1)+'%';
+let baseline=null, basePayload=null;
+
+function showError(e){
+  const list=(e&&e.details)?'<ul>'+e.details.map(d=>`<li>${esc(d)}</li>`).join('')+'</ul>':'';
+  const msg=(e&&e.error)?e.error:'Cannot reach the server. Is app.py running?';
+  el('errBox').innerHTML=`<div class="err"><b>${esc(msg)}</b>${list}</div>`;
+}
+
+function render(d){
+  el('errBox').innerHTML='';
+  el('empty').classList.add('hidden');
+  el('result').classList.remove('hidden');
+  el('pct').textContent=pct(d.churn_probability);
+  const rb=el('risk'); rb.textContent=d.risk_category+' risk'; rb.style.background=riskColor[d.risk_category];
+  el('verdict').textContent=d.churn_prediction===1?'Predicted: likely to churn':'Predicted: likely to stay';
+  const bf=el('barFill'); bf.style.width=(d.churn_probability*100)+'%'; bf.style.background=riskColor[d.risk_category];
+  el('pSk').textContent=pct(d.probabilities_by_model.sklearn);
+  el('pCu').textContent=pct(d.probabilities_by_model.custom);
+  el('estNote').textContent=d.total_charges_estimated?'Total charges was left blank, so it was estimated as tenure x monthly charges.':'';
+  el('estNote').textContent+=(el('estNote').textContent?' ':'')+'Risk bands (Low <30%, Medium 30-60%, High 60%+) are a labelling convention, not learned by the model.';
+
+  const max=Math.max(...d.top_factors.map(f=>Math.abs(f.contribution)));
+  el('factors').innerHTML=d.top_factors.map(f=>{
+    const up=f.contribution>0, w=Math.abs(f.contribution)/max*100;
+    return `<div class="factor"><div class="t"><span>${esc(f.label)}</span><b style="color:${up?'#B3261E':'#2E7D5B'}">${up?'+':''}${f.contribution.toFixed(2)}</b></div>
+    <div class="b"><i style="width:${w}%;background:${up?'#B3261E':'#2E7D5B'}"></i></div></div>`;
+  }).join('');
+  ['factorCard','whatCard','sugCard'].forEach(i=>el(i).classList.remove('hidden'));
+}
+
+function suggestions(p){
+  const s=[];
+  if(p.Contract==='Month-to-month') s.push('Offer an incentive to move to a one- or two-year contract.');
+  if(p.PaymentMethod==='Electronic check') s.push('Encourage automatic payment (bank transfer or credit card).');
+  if(p.InternetService!=='No' && p.TechSupport==='No') s.push('Offer a trial of tech support.');
+  if(p.InternetService!=='No' && p.OnlineSecurity==='No') s.push('Offer a trial of online security.');
+  if(Number(p.tenure)<=12) s.push('Schedule an early-life check-in call; newer customers churn more in this dataset.');
+  if(!s.length) s.push('Keep regular engagement. No obvious risk levers in the inputs.');
+  el('sug').innerHTML=s.map(x=>`<li>${esc(x)}</li>`).join('');
+}
+
+function syncWhatIf(p){
+  el('w_Contract').value=p.Contract; el('w_PaymentMethod').value=p.PaymentMethod;
+  const noNet=p.InternetService==='No';
+  ['TechSupport','OnlineSecurity'].forEach(n=>{
+    const s=el('w_'+n); s.disabled=noNet; s.value=noNet?'No':p[n];
+  });
+  el('simOut').innerHTML='';
+}
+
+el('form').addEventListener('submit',async ev=>{
+  ev.preventDefault();
+  try{
+    const payload=collect();
+    const d=await callApi(payload);
+    baseline=d.churn_probability; basePayload=payload;
+    render(d); suggestions(payload); syncWhatIf(payload);
+  }catch(e){ showError(e); }
+});
+
+el('simBtn').addEventListener('click',async()=>{
+  if(!basePayload) return;
+  const p={...basePayload, Contract:el('w_Contract').value, PaymentMethod:el('w_PaymentMethod').value};
+  if(basePayload.InternetService!=='No'){ p.TechSupport=el('w_TechSupport').value; p.OnlineSecurity=el('w_OnlineSecurity').value; }
+  try{
+    const d=await callApi(p);
+    const diff=(d.churn_probability-baseline)*100;
+    const col=diff<0?'#2E7D5B':(diff>0?'#B3261E':'#6b665c');
+    el('simOut').innerHTML=`New score <b>${pct(d.churn_probability)}</b> (was ${pct(baseline)}) <span class="delta" style="color:${col}">${diff>0?'+':''}${diff.toFixed(1)} pts</span>`;
+  }catch(e){ showError(e); }
+});
+</script>
+</body>
+</html>
